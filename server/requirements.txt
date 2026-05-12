@@ -1,7 +1,10 @@
-Flask
-Flask-SQLAlchemy
-Flask-JWT-Extended
-Flask-SocketIO
-psycopg2
-redis
-celery
+flask
+flask-sqlalchemy
+flask-jwt-extended
+flask-bcrypt
+flask-cors 
+psycopg2-binary 
+python-dotenv 
+flask-migrate 
+redis 
+flask-socketio
