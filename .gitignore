@@ -1,6 +1,6 @@
 # Python/Flask Backend
 server/venv/
-server/.venv/
+server/.env/
 server/env/
 server/__pycache__/
 server/*.py[cod]
