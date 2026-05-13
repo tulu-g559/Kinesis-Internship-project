@@ -15,25 +15,28 @@ export default function Login() {
     password: "",
   });
 
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    try {
+  try {
 
-      const res = await API.post("/auth/register", form)
+    const res = await API.post("/auth/login", form);
 
-      loginStore(
-        res.data.user,
-        res.data.access_token
-      );
+    loginStore(
+      res.data.user,
+      res.data.access_token
+    );
 
-      navigate("/dashboard");
+    navigate("/dashboard");
 
-    } catch (err) {
-      console.log(err);
-      alert("Login failed");
-    }
-  };
+  } catch (err) {
+
+    console.log(err);
+
+    alert("Login failed");
+  }
+};
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center">

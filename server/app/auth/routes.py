@@ -79,6 +79,7 @@ def login():
     }
 
 
+
 # GET CURRENT USER
 @auth_bp.route("/me", methods=["GET"])
 @jwt_required()
