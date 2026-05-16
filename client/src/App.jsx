@@ -1,7 +1,8 @@
 import {
   BrowserRouter,
   Routes,
-  Route
+  Route,
+  Navigate
 } from "react-router-dom";
 
 import Login from "./pages/Login";
@@ -10,11 +11,16 @@ import Dashboard from "./pages/Dashboard";
 import Markets from "./pages/Markets";
 import MarketDetails from "./pages/MarketDetails";
 import CreateMarket from "./pages/CreateMarket";
+import BettingMarket from "./pages/BettingMarket";
 import Landing from "./pages/Landing";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import useAuthStore from "./store/authStore";
 
 function App() {
+
+  const isAdmin = useAuthStore((state) => state.role) === "admin";
 
   return (
     <BrowserRouter>
@@ -37,10 +43,19 @@ function App() {
         />
 
         <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/dashboard"
           element={
             <ProtectedRoute>
-              <Dashboard />
+              {isAdmin ? <Navigate to="/admin" /> : <Dashboard />}
             </ProtectedRoute>
           }
         />
@@ -49,7 +64,7 @@ function App() {
           path="/markets"
           element={
             <ProtectedRoute>
-              <Markets />
+              {isAdmin ? <Navigate to="/admin" /> : <Markets />}
             </ProtectedRoute>
           }
         />
@@ -58,7 +73,7 @@ function App() {
           path="/markets/create"
           element={
             <ProtectedRoute>
-              <CreateMarket />
+              {isAdmin ? <Navigate to="/admin" /> : <CreateMarket />}
             </ProtectedRoute>
           }
         />
@@ -67,7 +82,16 @@ function App() {
           path="/markets/:id"
           element={
             <ProtectedRoute>
-              <MarketDetails />
+              {isAdmin ? <Navigate to="/admin" /> : <MarketDetails />}
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/markets/:id/bet"
+          element={
+            <ProtectedRoute>
+              {isAdmin ? <Navigate to="/admin" /> : <BettingMarket />}
             </ProtectedRoute>
           }
         />

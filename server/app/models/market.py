@@ -39,3 +39,11 @@ class Market(db.Model):
         db.DateTime,
         default=datetime.utcnow
     )
+
+    resolved_at = db.Column(
+        db.DateTime
+    )
+
+    winning_outcome_id = db.Column(
+        db.Integer
+    )

@@ -3,3 +3,4 @@ from .wallet import Wallet
 from .transaction import Transaction
 from .market import Market
 from .market_outcome import MarketOutcome
+from .bet import Bet

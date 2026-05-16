@@ -6,6 +6,7 @@ from flask_jwt_extended import (
 )
 
 from app.models.user import User
+from app.models.wallet import Wallet
 from app.auth.services import register_user
 from app.extensions import bcrypt
 
@@ -21,11 +22,16 @@ def register():
     username = data.get("username")
     email = data.get("email")
     password = data.get("password")
+    role = data.get("role", "user")  # 'admin' or 'user'
+
+    if role not in ["admin", "user"]:
+        role = "user"
 
     user, error = register_user(
         username,
         email,
-        password
+        password,
+        role
     )
 
     if error:
@@ -39,7 +45,8 @@ def register():
         "user": {
             "id": user.id,
             "username": user.username,
-            "email": user.email
+            "email": user.email,
+            "role": user.role
         }
     }, 201
 
@@ -74,7 +81,8 @@ def login():
         "user": {
             "id": user.id,
             "username": user.username,
-            "email": user.email
+            "email": user.email,
+            "role": user.role
         }
     }
 
@@ -89,8 +97,12 @@ def me():
 
     user = User.query.get(current_user_id)
 
+    wallet = Wallet.query.filter_by(user_id=user.id).first()
+
     return {
         "id": user.id,
         "username": user.username,
-        "email": user.email
+        "email": user.email,
+        "role": user.role,
+        "wallet_balance": wallet.balance if wallet else 0
     }

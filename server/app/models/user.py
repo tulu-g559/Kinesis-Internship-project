@@ -12,4 +12,6 @@ class User(db.Model):
 
     password = db.Column(db.String(255), nullable=False)
 
+    role = db.Column(db.String(20), default="user")  # 'admin' or 'user'
+
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
