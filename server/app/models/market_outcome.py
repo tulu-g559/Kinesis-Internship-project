@@ -25,3 +25,8 @@ class MarketOutcome(db.Model):
         db.Float,
         default=1.5
     )
+
+    betting_price = db.Column(
+        db.Float,
+        default=0.001
+    )

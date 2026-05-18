@@ -15,13 +15,24 @@ def place():
     user_id = get_jwt_identity()
     data = request.get_json()
 
+    wallet_address = data.get("wallet_address")
+
+    if wallet_address:
+        from app.models.user import User
+        user = User.query.get(user_id)
+        if not user.wallet_address:
+            return {"error": "Please connect your wallet in the dashboard first"}, 400
+        if user.wallet_address != wallet_address:
+            return {"error": "Wallet address mismatch. Please connect the correct wallet."}, 400
+
     bet, error = place_bet(
         user_id=user_id,
         market_id=data.get("market_id"),
         outcome_id=data.get("outcome_id"),
         side=data.get("side"),
         stake=data.get("stake"),
-        odds=data.get("odds")
+        odds=data.get("odds"),
+        wallet_address=wallet_address
     )
 
     if error:
@@ -37,7 +48,8 @@ def place():
             "stake": bet.stake,
             "odds": bet.odds,
             "status": bet.status,
-            "remaining_amount": bet.remaining_amount
+            "remaining_amount": bet.remaining_amount,
+            "wallet_address": bet.wallet_address
         }
     }, 201
 

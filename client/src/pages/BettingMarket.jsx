@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import API from "../api/axios";
 import socket from "../socket";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -11,6 +11,7 @@ import LiveActivityTicker from "../components/LiveActivityTicker";
 export default function BettingMarket() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [market, setMarket] = useState(null);
   const [liveOdds, setLiveOdds] = useState(null);
   const [selectedOutcome, setSelectedOutcome] = useState(null);
@@ -77,7 +78,7 @@ export default function BettingMarket() {
       socket.off("market_update");
       socket.off("bet_matched");
     };
-  }, [id]);
+  }, [id, searchParams]);
 
   const [orderbookNeedsRefresh, setOrderbookNeedsRefresh] = useState(false);
 
@@ -85,9 +86,18 @@ export default function BettingMarket() {
     try {
       const res = await API.get(`/markets/${id}`);
       setMarket(res.data);
-      if (res.data.outcomes?.length > 0 && !selectedOutcome) {
+
+      const outcomeIdParam = searchParams.get("outcome");
+      if (outcomeIdParam && res.data.outcomes) {
+        const found = res.data.outcomes.find(o => o.id === parseInt(outcomeIdParam));
+        if (found) {
+          const decimalOdds = (1 / (found.odds || 1.5)).toFixed(2);
+          setSelectedOutcome({ ...found, odds: parseFloat(decimalOdds) });
+        }
+      } else if (res.data.outcomes?.length > 0 && !selectedOutcome) {
         setSelectedOutcome(res.data.outcomes[0]);
       }
+
       const initialChanges = {};
       res.data.outcomes.forEach(o => { initialChanges[o.id] = "stable"; });
       setOddsChanges(initialChanges);

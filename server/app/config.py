@@ -18,6 +18,8 @@ class Config:
 
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
+    ADMIN_WALLET_ADDRESS = os.getenv("ADMIN_WALLET_ADDRESS", "0x0000000000000000000000000000000000000000")
+
 print(
     f"postgresql://{os.getenv('DB_USER')}:"
     f"{os.getenv('DB_PASSWORD')}@"

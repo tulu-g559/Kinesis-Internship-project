@@ -34,3 +34,12 @@ def emit_live_activity(data, socketio):
         "live_activity",
         data
     )
+
+
+def emit_admin_transaction_notification(user_id, data, socketio):
+    """Emit transaction notification to specific admin user"""
+    socketio.emit(
+        "admin_transaction",
+        data,
+        room=f"user_{user_id}"
+    )

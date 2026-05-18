@@ -39,6 +39,17 @@ def get_markets():
             Bet.market_id == market.id
         ).scalar() or 0
 
+        # Calculate total bets for each outcome to get vote percentage
+        outcome_bets = {}
+        total_bets = 0
+        for outcome in outcomes:
+            outcome_stake = db.session.query(db.func.sum(Bet.stake)).filter(
+                Bet.market_id == market.id,
+                Bet.outcome_id == outcome.id
+            ).scalar() or 0
+            outcome_bets[outcome.id] = outcome_stake
+            total_bets += outcome_stake
+
         result.append({
             "id": market.id,
             "title": market.title,
@@ -51,7 +62,9 @@ def get_markets():
                 {
                     "id": outcome.id,
                     "title": outcome.title,
-                    "odds": outcome.odds
+                    "odds": outcome.odds,
+                    "betting_price": outcome.betting_price,
+                    "vote_percentage": round((outcome_bets[outcome.id] / total_bets * 100), 2) if total_bets > 0 else 0
                 }
                 for outcome in outcomes
             ]
@@ -82,12 +95,24 @@ def get_market(market_id):
     if market.status == "RESOLVED" and market.winning_outcome_id:
         winning_outcome = MarketOutcome.query.get(market.winning_outcome_id)
 
+    # Calculate total bets for each outcome to get vote percentage
+    outcome_bets = {}
+    total_bets = 0
+    for outcome in outcomes:
+        outcome_stake = db.session.query(db.func.sum(Bet.stake)).filter(
+            Bet.market_id == market_id,
+            Bet.outcome_id == outcome.id
+        ).scalar() or 0
+        outcome_bets[outcome.id] = outcome_stake
+        total_bets += outcome_stake
+
     return {
         "id": market.id,
         "title": market.title,
         "description": market.description,
         "type": market.type,
         "status": market.status,
+        "created_by": market.created_by,
         "volume_24h": round(total_volume, 2),
         "liquidity": round(matched_volume * 2, 2),
         "winning_outcome": {
@@ -98,7 +123,9 @@ def get_market(market_id):
             {
                 "id": outcome.id,
                 "title": outcome.title,
-                "odds": outcome.odds
+                "odds": outcome.odds,
+                "betting_price": outcome.betting_price,
+                "vote_percentage": round((outcome_bets[outcome.id] / total_bets * 100), 2) if total_bets > 0 else 0
             }
             for outcome in outcomes
         ]
@@ -125,6 +152,33 @@ def update_odds(outcome_id):
     return {
         "message": "Odds updated",
         "odds": outcome.odds
+    }
+
+
+# UPDATE BETTING PRICE (Admin only)
+@market_bp.route("/outcome/<int:outcome_id>/betting-price", methods=["PATCH"])
+@jwt_required()
+@admin_required
+def update_betting_price(outcome_id):
+
+    data = request.get_json()
+
+    outcome = MarketOutcome.query.get_or_404(outcome_id)
+
+    if "betting_price" not in data:
+        return {"error": "betting_price field is required"}, 400
+
+    betting_price = float(data["betting_price"])
+    if betting_price <= 0:
+        return {"error": "betting_price must be greater than 0"}, 400
+
+    outcome.betting_price = betting_price
+
+    db.session.commit()
+
+    return {
+        "message": "Betting price updated",
+        "betting_price": outcome.betting_price
     }
 
 

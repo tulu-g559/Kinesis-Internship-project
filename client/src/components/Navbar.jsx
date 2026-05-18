@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useAuthStore from "../store/authStore";
+import WalletConnect from "./WalletConnect";
 
 export default function Navbar() {
 
@@ -16,6 +17,8 @@ export default function Navbar() {
       </h1>
 
       <div className="flex items-center gap-4">
+        <WalletConnect />
+
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}

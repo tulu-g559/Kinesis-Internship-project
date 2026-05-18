@@ -48,6 +48,7 @@ class LiveOddsEngine:
                     prev_odds = outcome.odds
                     change = (random.random() - 0.5) * 0.08
                     new_odds = max(0.01, min(0.99, outcome.odds + change))
+                    # new_odds = max(0.001, min(0.03, outcome.odds + change))
                     outcome.odds = round(new_odds, 4)
 
                     change_direction = "up" if change > 0.01 else "down" if change < -0.01 else "stable"

@@ -10,6 +10,7 @@ from app.models.transaction import Transaction
 from app.extensions import db, socketio
 from app.socket.events import emit_market_update
 from app.middleware.auth_middleware import admin_required
+from app.config import Config
 from datetime import datetime
 
 
@@ -44,13 +45,14 @@ def create_market():
 
     outcomes = []
     for outcome in data["outcomes"]:
-        if "title" not in outcome:
+        if "title" not in outcome or not outcome["title"].strip():
             return {"error": "Each outcome must have a title"}, 400
 
         market_outcome = MarketOutcome(
             market_id=market.id,
-            title=outcome["title"],
-            odds=outcome.get("odds", 1.5)
+            title=outcome["title"].strip(),
+            odds=float(outcome.get("odds", 1.5)),
+            betting_price=float(outcome.get("betting_price", 0.001))
         )
         db.session.add(market_outcome)
         outcomes.append(market_outcome)
@@ -302,3 +304,45 @@ def get_platform_stats():
             "matched_volume": round(matched_volume, 2)
         }
     }
+
+
+@admin_bp.route("/transactions", methods=["GET"])
+@jwt_required()
+@admin_required
+def get_all_transactions():
+    """Admin views all wallet-to-wallet transactions"""
+    transactions = Transaction.query.order_by(Transaction.created_at.desc()).all()
+
+    result = []
+    for tx in transactions:
+        user = None
+        if tx.wallet_id:
+            wallet = Wallet.query.get(tx.wallet_id)
+            if wallet:
+                user = User.query.get(wallet.user_id)
+
+        market_title = None
+        outcome_title = None
+        if tx.bet_id:
+            bet = Bet.query.get(tx.bet_id)
+            if bet:
+                market = Market.query.get(bet.market_id)
+                outcome = MarketOutcome.query.get(bet.outcome_id)
+                market_title = market.title if market else None
+                outcome_title = outcome.title if outcome else None
+
+        result.append({
+            "id": tx.id,
+            "type": tx.type,
+            "amount": tx.amount,
+            "status": tx.status,
+            "from_wallet": tx.from_wallet_address,
+            "to_wallet": tx.to_wallet_address,
+            "tx_hash": tx.tx_hash,
+            "bet_id": tx.bet_id,
+            "market_title": market_title,
+            "outcome_title": outcome_title,
+            "created_at": tx.created_at.isoformat() if tx.created_at else None
+        })
+
+    return {"transactions": result}

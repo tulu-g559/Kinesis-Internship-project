@@ -12,6 +12,10 @@ class User(db.Model):
 
     password = db.Column(db.String(255), nullable=False)
 
-    role = db.Column(db.String(20), default="user")  # 'admin' or 'user'
+    role = db.Column(db.String(20), default="user")
+
+    wallet_address = db.Column(db.String(42), unique=True, nullable=True)
+
+    chain_id = db.Column(db.Integer, nullable=True)
 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

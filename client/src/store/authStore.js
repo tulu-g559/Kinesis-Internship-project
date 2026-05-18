@@ -12,7 +12,7 @@ const useAuthStore = create((set) => ({
     set({
       user,
       token,
-      role: user.role || "user"
+      role: user.role || "user",
     });
   },
 
@@ -23,13 +23,13 @@ const useAuthStore = create((set) => ({
     set({
       user: null,
       token: null,
-      role: null
+      role: null,
     });
   },
 
   isAdmin: () => {
     return localStorage.getItem("role") === "admin";
-  }
+  },
 }));
 
 export default useAuthStore;

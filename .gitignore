@@ -2,6 +2,7 @@
 server/venv/
 server/.env/
 server/env/
+__pycache__/
 server/__pycache__/
 server/*.py[cod]
 server/*$py.class

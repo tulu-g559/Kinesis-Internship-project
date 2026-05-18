@@ -29,6 +29,11 @@ class Bet(db.Model):
         nullable=False
     )
 
+    wallet_address = db.Column(
+        db.String(42),
+        nullable=True
+    )
+
     side = db.Column(
         db.String(10),
         nullable=False

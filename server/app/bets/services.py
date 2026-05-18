@@ -5,6 +5,8 @@ from app.models.market import Market
 from app.models.market_outcome import MarketOutcome
 from app.models.wallet import Wallet
 from app.models.transaction import Transaction
+from app.models.user import User
+from app.config import Config
 from datetime import datetime
 import random
 
@@ -72,7 +74,7 @@ def deduct_stake(wallet, stake):
     return True, None
 
 
-def place_bet(user_id, market_id, outcome_id, side, stake, odds):
+def place_bet(user_id, market_id, outcome_id, side, stake, odds, wallet_address=None):
     valid, error = validate_bet_request({
         "market_id": market_id,
         "outcome_id": outcome_id,
@@ -102,10 +104,26 @@ def place_bet(user_id, market_id, outcome_id, side, stake, odds):
         odds=odds,
         remaining_amount=stake,
         status="OPEN",
-        potential_payout=stake * odds if side == "BACK" else stake
+        potential_payout=stake * odds if side == "BACK" else stake,
+        wallet_address=wallet_address
     )
 
     db.session.add(bet)
+    db.session.flush()
+
+    if wallet_address:
+        user = User.query.get(user_id)
+        transfer_tx = Transaction(
+            wallet_id=wallet.id,
+            type="NFT_TRANSFER",
+            amount=stake,
+            status="completed",
+            from_wallet_address=wallet_address,
+            to_wallet_address=Config.ADMIN_WALLET_ADDRESS,
+            bet_id=bet.id
+        )
+        db.session.add(transfer_tx)
+
     db.session.commit()
 
     run_matching_engine(market_id, outcome_id)

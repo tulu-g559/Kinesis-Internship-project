@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import API from "../api/axios";
+import useWalletStore from "../store/walletStore";
+import { useAccount } from "wagmi";
 
 const QUICK_STAKES = [10, 25, 50, 100, 250, 500];
 
@@ -12,6 +14,9 @@ export default function BetSlip({ marketId, selectedOutcome, onBetPlaced }) {
   const [success, setSuccess] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const prevOutcomeRef = useRef(null);
+
+  const { isConnected } = useAccount();
+  const walletAddress = useWalletStore((state) => state.walletAddress);
 
   useEffect(() => {
     if (selectedOutcome) {
@@ -42,6 +47,11 @@ export default function BetSlip({ marketId, selectedOutcome, onBetPlaced }) {
     setError("");
     setSuccess("");
 
+    if (!isConnected || !walletAddress) {
+      setError("Please connect your wallet before placing bets");
+      return;
+    }
+
     if (!selectedOutcome) {
       setError("Please select an outcome");
       return;
@@ -65,7 +75,8 @@ export default function BetSlip({ marketId, selectedOutcome, onBetPlaced }) {
         outcome_id: selectedOutcome.id,
         side,
         stake: parseFloat(stake),
-        odds: parseFloat(odds)
+        odds: parseFloat(odds),
+        wallet_address: walletAddress
       });
 
       setSuccess(`Bet placed successfully! ${side === "BACK" ? "Backing" : "Laying"} ${selectedOutcome.title} @ ${odds}`);
@@ -288,7 +299,7 @@ export default function BetSlip({ marketId, selectedOutcome, onBetPlaced }) {
 
           <button
             type="submit"
-            disabled={loading || !selectedOutcome}
+            disabled={loading || !selectedOutcome || !isConnected}
             className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
               side === "BACK"
                 ? "bg-gradient-to-r from-green-500 to-green-400 hover:from-green-400 hover:to-green-300 text-black shadow-[0_0_30px_rgba(34,197,94,0.3)] hover:shadow-[0_0_40px_rgba(34,197,94,0.5)]"
@@ -302,6 +313,13 @@ export default function BetSlip({ marketId, selectedOutcome, onBetPlaced }) {
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
                 Placing Bet...
+              </span>
+            ) : !isConnected ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Connect Wallet to Bet
               </span>
             ) : (
               <span className="flex items-center justify-center gap-2">
